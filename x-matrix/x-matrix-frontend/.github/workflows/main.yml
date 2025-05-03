@@ -1,0 +1,27 @@
+name: Deploy X-Matrix Frontend to Azure VM
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Azure VM
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            cd /home/Moncef-VM/XMatrix/x-matrix-frontend
+            git pull origin master --force
+            docker build -t x-matrix-frontend .
+            docker run -d -p 8999:3000 --name x-matrix-frontend-container x-matrix-frontend
+            docker ps -a
